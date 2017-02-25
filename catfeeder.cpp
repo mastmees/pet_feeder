@@ -48,6 +48,9 @@ SOFTWARE.
 #define spkr_off() (PORTB=PORTB|_BV(PB1))
 #define spkr_toggle()  (PORTB=PORTB ^ _BV(PB1))
 
+#define sensor_on() (PORTB=PORTB|_BV(PB7))
+#define sensor_off() (PORTB=PORTB&~(_BV(PB7)))
+
 // supply voltage meter initial constant
 #define VCCCAL 799
 
@@ -101,6 +104,7 @@ void fullpower(void)
   set_sleep_mode(SLEEP_MODE_IDLE);
   display.On();
   spkr_off();
+  sensor_on();
 }
 
 void lowpower(void)
@@ -109,6 +113,7 @@ void lowpower(void)
   set_sleep_mode(SLEEP_MODE_IDLE);
   spkr_off();
   display.Off();
+  sensor_off();
 }
 
 void powersave(void)
@@ -117,6 +122,7 @@ void powersave(void)
   display.Off();
   servo.Off();
   spkr_off();
+  sensor_off();
   PORTC=6; // make sure pullups are enabled on plus and minus button
   PORTD=1; // enable pullup on enter button
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
@@ -203,9 +209,9 @@ void do_feeding(uint8_t servings)
   player.Play("Beethoven - Fur Elise : d=4,o=5,b=160:8e7,8d#7,8e7,8d#7,8e7,8b6,8d7,8c7,8a6,8e,8a,8c6,8e6,8a6,8b6,8e,8g#,8e6,8g#6,8b6,8c7,8e,8a,8e6,8e7,8d#7,8e7,8d#7,8e7,8b6,8d7,8c7,8a6,8e,8a,8c6,8e6,8a6,8b6,8e,8g#,8e6,8c7,8b6,2a6,");
   while (servings)
   {
-    servo.Right(2);
+    servo.Right(3);
     ServoWait();
-    servo.Left(SERVINGSIZE);
+    servo.Left(SERVINGSIZE+3);
     ServoWait();
     servings--;
   }
@@ -526,6 +532,8 @@ PB2 LED                               output       1    0
 PB3 D3 cathode                        output       1    0
 PB4 D2 cathode                        output       1    0
 PB5 D1 cathode                        output       1    0
+PB6 movement sensor input             input        0    0
+PB7 movement sensor power             output       1    0
 */
 
 int main(void)
@@ -535,7 +543,7 @@ int main(void)
   // I/O directions
   DDRC=0x38;
   DDRD=0xfe;
-  DDRB=0x3f;
+  DDRB=0xbf;
   // initial state
   PORTC=0x06;
   PORTD=0x01;

@@ -72,6 +72,7 @@ public:
     pcount=pulses;
   }
   
+  
   void On()
   {
     pcount=0;
@@ -88,6 +89,18 @@ public:
   bool Active()
   {
     return (active>0);
+  }
+
+  // -1 left
+  // 0 stopped
+  // 1 right
+  int8_t Direction()
+  {
+    if (!Active())
+      return 0;
+    if (GetPosition()>180)
+      return 1;
+    return -1;
   }
       
   void Pulse()

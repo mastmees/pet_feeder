@@ -99,7 +99,7 @@ public:
   }
   
   void On() { off=0; }
-  void Off() { off=1; PORTB|=0x38; }
+  void Off() { off=1; PORTB|=0xb8; }
 
   void Clear() { 
     chars[0]=0x00; chars[1]=0x00; chars[2]=0x00;
@@ -108,23 +108,23 @@ public:
     
   void refresh(void)
   {
-    PORTB|=0x38; // all digits off
+    PORTB|=0xb8; // all digits off
     if (off)
       return;
     uint8_t bits=chars[dp];
-    PORTB&=0x3a; // all segments
+    PORTB&=0xba; // all segments
     PORTD&=0x19; // off too
     PORTB|=(((bits>>5)&1) | ((bits>>4)&4));
     PORTD|=((bits<<1)&6) | ((bits<<3)&0xe0);
     switch (dp) {
       case 0:
-        PORTB&=0x1f;
+        PORTB&=0x9f;
         break;
       case 1:
-        PORTB&=0x2f;
+        PORTB&=0xaf;
         break;
       case 2:
-        PORTB&=0x37;
+        PORTB&=0xb7;
         break;
     }
     dp=(dp+1)%3;

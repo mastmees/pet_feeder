@@ -72,7 +72,6 @@ public:
     pcount=pulses;
   }
   
-  
   void On()
   {
     pcount=0;
@@ -84,6 +83,13 @@ public:
   {
     servo_power_off();
     active=0;
+  }
+  
+  void Stop()
+  {
+    pcount=0;
+    active=0;
+    TCNT2=OCR2B-1;
   }
 
   bool Active()

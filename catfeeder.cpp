@@ -37,7 +37,7 @@ SOFTWARE.
 #include "button.hpp"
 
 #define LOWBATTERYLEVEL 440 // low battery threshold in 10mV units
-#define SERVINGSIZE 30 // size of one serving in 20ms servo ticks
+#define SERVINGSIZE 4 // size of one serving in sensor ticks
 #define notRECHARGEABLE_BATTERY // if defined, enables trickle charging
 
 #ifndef COUNTOF
@@ -202,18 +202,57 @@ uint16_t entervalue(uint16_t value,uint16_t min,uint16_t max)
   return value;
 }
 
-void do_feeding(uint8_t servings)
+bool StepBack()
+{
+uint8_t sensor=PINB&0x40;
+  servo.Right(10);
+  while (servo.Active()) {
+    if ((PINB&0x40) && !sensor) {
+      servo.Stop();
+      return true;
+    }
+    sensor=PINB&0x40;
+    wdt_reset();
+    WDTCSR|=0x40;
+  }
+  servo.Stop();
+  return false;
+}
+
+bool StepForward()
+{
+uint8_t sensor=PINB&0x40;
+  servo.Left(10);
+  while (servo.Active()) {
+    if ((PINB&0x40) && !sensor) {
+      servo.Stop();
+      return true;
+    }
+    sensor=PINB&0x40;
+    wdt_reset();
+    WDTCSR|=0x40;
+  }
+  servo.Stop();
+  return false;
+}
+
+void do_feeding(uint8_t servings,uint8_t playmusic=1)
 {
   display.Clear();
   fullpower();
-  player.Play("Beethoven - Fur Elise : d=4,o=5,b=160:8e7,8d#7,8e7,8d#7,8e7,8b6,8d7,8c7,8a6,8e,8a,8c6,8e6,8a6,8b6,8e,8g#,8e6,8g#6,8b6,8c7,8e,8a,8e6,8e7,8d#7,8e7,8d#7,8e7,8b6,8d7,8c7,8a6,8e,8a,8c6,8e6,8a6,8b6,8e,8g#,8e6,8c7,8b6,2a6,");
+  if (playmusic)
+    player.Play("Beethoven - Fur Elise : d=4,o=5,b=160:8e7,8d#7,8e7,8d#7,8e7,8b6,8d7,8c7,8a6,8e,8a,8c6,8e6,8a6,8b6,8e,8g#,8e6,8g#6,8b6,8c7,8e,8a,8e6,8e7,8d#7,8e7,8d#7,8e7,8b6,8d7,8c7,8a6,8e,8a,8c6,8e6,8a6,8b6,8e,8g#,8e6,8c7,8b6,2a6,");
+  servings*=SERVINGSIZE;
   while (servings)
   {
-    servo.Right(3);
-    ServoWait();
-    servo.Left(SERVINGSIZE+3);
-    ServoWait();
-    servings--;
+    if (!StepForward())
+    {
+      servo.Off();
+      _delay_ms(200);
+      StepBack();
+    }
+    else
+      servings--;
   }
   servo.Off();
   enter_button.Clear();
@@ -383,7 +422,7 @@ uint16_t v;
             schedule_select();            
             break;
           case MENU_TST: // tst
-            do_feeding(10);
+            do_feeding(10,0);
             break;
           case MENU_CAL: // cal
             v=eeprom_read_word(&ee_calibration);

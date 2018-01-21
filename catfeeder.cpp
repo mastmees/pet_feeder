@@ -593,9 +593,9 @@ int main(void)
   //
   PCMSK2=0x01; // mask out everything but button pins
   PCMSK1=0x06;
-  // configure watchdog to interrupt&reset, 4 sec timeout
-  WDTCSR|=0x18;
-  WDTCSR=0xe8;
+  // configure watchdog
+  WDTCSR=(1<<WDE) | (1<<WDCE);
+  WDTCSR=(1<<WDE) | (1<<WDIE) | (1<<WDP2) | (1<<WDP1) | (1<<WDP0) ; // 2sec timout, interrupt+reset
   // configure timer0 for periodic interrupts
   TCCR0B=4; // timer0 clock prescaler to 256
   TIMSK0=1; // enable overflow interrupts
@@ -621,7 +621,7 @@ int main(void)
     PCICR=0x06; // enable pin change interrupts 1 and 2
     sleep_cpu();   // watchdog or I/O interrupt wakes us up
     wdt_reset();
-    WDTCSR|=0x40;
+    WDTCSR=(1<<WDIE) | (1<<WDP2) | (1<<WDP1) | (1<<WDP0) ; // 2sec timout, interrupt+reset
     PCICR=0x00;
     // now check if it was button press or watchdog
     if ((PIND&1)==0 || (PINC&0x06)!=0x06) {
